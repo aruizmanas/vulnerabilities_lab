@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./server
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+    networks:
+      - xss-network
+
+networks:
+  xss-network:
+    driver: bridge

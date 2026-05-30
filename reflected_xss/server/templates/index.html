@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reflected XSS Demo</title>
+</head>
+<body>
+    <h1>Reflected XSS Demo</h1>
+    <form action="/" method="get">
+        <label for="name">Enter your name:</label>
+        <input type="text" id="name" name="name" placeholder="Name">
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if name %}
+        <hr>
+        <!-- The 'safe' filter tells Jinja2 NOT to escape this variable, creating an XSS vulnerability -->
+        <p>Hello, {{ name | safe }}!</p>
+    {% endif %}
+
+    <div style="margin-top: 50px; font-size: 0.8em; color: #666;">
+        <p>Note: This application is intentionally vulnerable to Reflected XSS for educational purposes.</p>
+    </div>
+</body>
+</html>

@@ -1,6 +1,6 @@
-# Injection Vulnerabilities
+# Vulnerability Reproductions
 
-This repository contains examples and demonstrations of various injection vulnerabilities, for educational and security research purposes.
+This repository contains reproductions and demonstrations of various security vulnerabilities for educational and study purposes. Each module focuses on a specific type of vulnerability, providing a controlled environment to understand and test exploitation techniques.
 
 ## Modules
 

@@ -1,0 +1,68 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  # Use bridged networking on a specific interface
+  config.vm.network "public_network", bridge: "wlp0s20f3"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    export DEBIAN_FRONTEND=noninteractive
+
+    # 1. Enable contrib and non-free repositories
+    cat > /etc/apt/sources.list <<EOF
+deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+EOF
+    apt-get update
+
+    # 2. Install XFCE and LightDM
+    apt-get install -y xfce4 xfce4-goodies lightdm xserver-xorg x11-xserver-utils
+
+    # 3. Install tools and Guest Additions
+    apt-get install -y git curl vim sudo accountsservice dbus-x11 virtualbox-guest-x11 virtualbox-guest-utils dkms xdg-utils
+
+    # 4. Force Firefox ESR installation with explicit logging
+    echo "Attempting to install Firefox ESR..."
+    apt-get install -y firefox-esr
+    if [ -f /usr/bin/firefox-esr ]; then
+      echo "Firefox ESR installed successfully at /usr/bin/firefox-esr"
+      update-alternatives --set x-www-browser /usr/bin/firefox-esr
+    else
+      echo "ERROR: Firefox ESR installation failed!"
+    fi
+
+    # 5. Fix LightDM missing directory and permissions
+
+    mkdir -p /var/lib/lightdm/data
+    if id "lightdm" >/dev/null 2>&1; then
+      chown -R lightdm:lightdm /var/lib/lightdm
+    fi
+
+    mkdir -p /etc/X11
+    echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
+
+    # 6. Create 'admin' user with sudo permissions
+    if ! id "admin" >/dev/null 2>&1; then
+      useradd -m -s /bin/bash -G sudo admin
+      echo "admin:letmein" | chpasswd
+    fi
+
+    # Configure the system to boot into the console by default
+    systemctl set-default multi-user.target
+    systemctl enable lightdm
+  SHELL
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "Creta"
+    vb.gui = false
+    vb.memory = "2048" # Increased for Graphical Interface
+    vb.cpus = 2
+
+    # Graphics optimizations
+    vb.customize ["modifyvm", :id, "--vram", "128"]
+    vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+
+    # Ensure the virtual cable is connected for the bridged adapter (usually adapter 2)
+    vb.customize ["modifyvm", :id, "--cableconnected2", "on"]
+  end
+end

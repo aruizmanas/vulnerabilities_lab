@@ -1,0 +1,22 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "kalilinux/rolling"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y vim git sudo virtualbox-guest-x11 virtualbox-guest-utils dkms
+
+    # Create 'kali' user with sudo permissions
+    if ! id "kali" >/dev/null 2>&1; then
+      useradd -m -s /bin/bash -G sudo kali
+      echo "kali:letmein" | chpasswd
+    fi
+  SHELL
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "Kali"
+    vb.memory = "2048"
+    vb.cpus = 2
+    vb.gui = false
+  end
+end
